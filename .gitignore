@@ -9,6 +9,7 @@ data-sets/
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 checkpoint*/
+submission.csv
 
 # IPython
 profile_default/

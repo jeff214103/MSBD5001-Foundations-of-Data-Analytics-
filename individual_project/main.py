@@ -1,6 +1,7 @@
 from data_util import DataUtil
 from sklearn.metrics import classification_report
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
 from argparse import ArgumentParser
 import numpy as np
 import traceback 
@@ -13,23 +14,31 @@ def train(train_path, model_path):
     Y_train = np.ravel(Y_train)
 
     print("Training model... Will output model to {}".format(model_path))
-    randomForest = RandomForestClassifier()
-    decisionTree = randomForest.fit(X_train,Y_train)
+    tuned_parameters = [{'n_estimators': [5,10,20,50,100,200,500], 'max_depth': [1,2,3,4,5,6,7,8,9,10]}]
+
+
+    clf = GridSearchCV(RandomForestClassifier(), tuned_parameters, cv=5,
+                    scoring='accuracy')
+    clf.fit(X_train, Y_train)
+
+    print("best parameters: ", clf.best_params_)
+    print("best score:", clf.best_score_ )
+
     print("Finish training")
-    pickle.dump(decisionTree, open(model_path, 'wb'))
+    pickle.dump(clf, open(model_path, 'wb'))
     print("Success save model to {}".format(model_path))
 
 
 def test(test_path, model_path, submission_path):
     print("Loading model {}".format(model_path))
-    decisionTree = pickle.load(open(model_path, 'rb'))
+    clf = pickle.load(open(model_path, 'rb'))
 
     print("Reading testing data from dataset/{}".format(test_path))
     dataUtil = DataUtil()
     X_test = dataUtil.readTestData(test=test_path)
 
     print("Predicting model... Will output result to {}".format(submission_path))
-    predict = decisionTree.predict(X_test)
+    predict = clf.predict(X_test)
     dataUtil.outputFile(predict, output=submission_path)
     print("Success output result to {}".format(submission_path))
 
